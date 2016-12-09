@@ -1,4 +1,5 @@
 var http = require('http');
+var url = require('url');
 
 http.createServer(function (request, response) {
    // Send the HTTP header 
@@ -6,13 +7,56 @@ http.createServer(function (request, response) {
    // Content Type: text/plain
    response.writeHead(200, {'Content-Type': 'text/plain'});
    
-   if(request.method=='POST') {
-       // Send the response body as "Hello Cloud"
-        response.end('Wow, this was an awesome POST request!\n'); 
-   }
-   else
+    var queryData = url.parse(request.url, true).query;
+    var firstname =  queryData.fn;
+    var lastname =  queryData.ln;
+
+    var headers = request.headers;
+    var authorization = headers['authorization'];
+   
+    var username = null;
+    var password = null;
+
+    if (authorization)
+    {
+        var tmp = authorization.split(' ');     // Split on a space, the original auth looks like  "Basic Y2hhcmxlczoxMjM0NQ==" and we need the 2nd part
+        var buf = new Buffer(tmp[1], 'base64'); // create a buffer and tell it the data coming in is base64
+        var plain_auth = buf.toString();        // read it back out as a string At this point plain_auth = "username:password"
+
+        var creds = plain_auth.split(':');      // split on a ':'
+        username = creds[0];
+        password = creds[1];
+    }
+
+   if(request.method=='POST') 
    {
-        // Send the response body as "Hello Cloud"
-        response.end('Hello Cloud\n'); 
-   } 
-}).listen(process.env.PORT);
+        var body = [];
+        request.on('data', function(chunk) {
+            body.push(chunk);
+        }).on('end', function() {
+            body = Buffer.concat(body).toString();
+                // at this point, `body` has the entire request body stored in it as a string
+                var responseMessage = 'Your provided e-mail address is: '+body;
+                
+                if (authorization) 
+                    responseMessage += '\nYour provided Authorization header is: '+authorization;
+                
+                if (username)
+                    responseMessage += '\nYour provided username is: '+username;
+
+                if (password)
+                    responseMessage += '\nYour provided password is: '+password;
+                
+                response.end(responseMessage);
+       
+            });       
+    }
+    else
+   {       
+        response.end('Wow, this was an awesome '+request.method+' request. But you were requestesd to make a POST request.!\n'); 
+   }
+   
+}).listen(8081);
+
+// Console will print the message
+console.log('Server running at http://127.0.0.1:8081/');
