@@ -47,13 +47,15 @@ http.createServer(function (request, response) {
                 if (password)
                     responseMessage += '\nYour provided password is: '+password;
                 
+                responseMessage += '\nThis platform is ' + process.pid);
+                  
                 response.end(responseMessage);
        
             });       
     }
     else
    {       
-        response.end('Wow, this was an awesome '+request.method+' request. But you were requestesd to make a POST request.!\n'); 
+        response.end('Wow, this was an awesome '+request.method+' request. But you were requestesd to make a POST request.!\n');
    }
    
 }).listen(process.env.PORT);
