@@ -46,8 +46,6 @@ http.createServer(function (request, response) {
 
                 if (password)
                     responseMessage += '\nYour provided password is: '+password;
-                
-                responseMessage += '\nThis platform is ' + process.pid);
                   
                 response.end(responseMessage);
        
